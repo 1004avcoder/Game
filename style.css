@@ -1,0 +1,495 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #cdcdcd;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* 상단 레벨 및 경험치 바 UI (심플 & 단색) */
+#header-ui {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.level-badge {
+  background: #ff9800;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1.5px solid #444444;
+  min-width: 48px;
+  text-align: center;
+}
+
+.exp-container {
+  position: relative;
+  width: 240px;
+  height: 16px;
+}
+
+.exp-bar-bg {
+  width: 100%;
+  height: 100%;
+  background: #333333;
+  border: 1.5px solid #444444;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.exp-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: #00b2e1;
+  border-radius: 4px;
+  transition: width 0.15s ease-out;
+}
+
+.exp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+/* ==========================================
+   좌측 하단 Diep.io 스타일 스탯 HUD
+   ========================================== */
+#stat-hud {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 15;
+  background: rgba(26, 26, 28, 0.92);
+  border: 1.5px solid #444444;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: auto;
+}
+
+#stat-hud.hidden {
+  opacity: 0;
+  transform: translateY(18px);
+  pointer-events: none;
+}
+
+.stat-points-badge {
+  background: #ff9800;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #444444;
+  margin-bottom: 6px;
+  text-align: center;
+  letter-spacing: 0.3px;
+  animation: pulsePoint 1.2s infinite ease-in-out;
+}
+
+.stat-points-badge.hidden {
+  display: none;
+}
+
+@keyframes pulsePoint {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.2); }
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #555555;
+  background: #37474f;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+}
+
+.stat-btn:hover:not(:disabled) {
+  transform: scale(1.15);
+  filter: brightness(1.25);
+}
+
+.stat-btn.active {
+  background: #ff9800;
+  border-color: #ffe082;
+  box-shadow: 0 0 6px rgba(255, 152, 0, 0.6);
+}
+
+.stat-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+
+.stat-key {
+  font-size: 10px;
+  font-weight: 800;
+  color: #888888;
+  background: #262626;
+  border: 1px solid #444444;
+  border-radius: 3px;
+  padding: 1px 4px;
+  min-width: 16px;
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #cfd8dc;
+  width: 52px;
+  letter-spacing: 0.2px;
+}
+
+.stat-bar-track {
+  position: relative;
+  width: 110px;
+  height: 13px;
+  background: #1c1c1e;
+  border: 1.5px solid #444444;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.15s ease-out;
+}
+
+.stat-hp { background: #00e676; }
+.stat-def { background: #00b0ff; }
+.stat-atk { background: #ff5252; }
+.stat-spd { background: #ffd600; }
+
+.stat-segments {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.stat-segments span {
+  flex: 1;
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.stat-segments span:last-child {
+  border-right: none;
+}
+
+.stat-val {
+  font-size: 10px;
+  font-weight: 700;
+  color: #90a4ae;
+  width: 24px;
+  text-align: right;
+  font-family: monospace;
+}
+
+/* 우측 하단 무기 및 탄약 HUD */
+#weapon-hud {
+  position: absolute;
+  bottom: 20px;
+  right: 22px;
+  background: rgba(26, 26, 28, 0.9);
+  border: 1.5px solid #444444;
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-width: 135px;
+  color: #ffffff;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.weapon-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.weapon-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b0bec5;
+  letter-spacing: 0.2px;
+}
+
+.ammo-counter {
+  display: flex;
+  align-items: baseline;
+}
+
+.ammo-num {
+  font-size: 18px;
+  font-weight: 900;
+  color: #ffe066;
+}
+
+.ammo-slash {
+  font-size: 12px;
+  color: #777777;
+  margin: 0 2px;
+}
+
+.ammo-max {
+  font-size: 12px;
+  color: #9e9e9e;
+  font-weight: 600;
+}
+
+.ammo-bar-bg {
+  width: 100%;
+  height: 5px;
+  background: #222222;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ammo-bar-fill {
+  width: 100%;
+  height: 100%;
+  background: #ffcc00;
+  border-radius: 3px;
+  transition: width 0.1s linear, background-color 0.2s;
+}
+
+.reload-status {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff5252;
+  margin-top: 4px;
+  text-align: right;
+  letter-spacing: 0.3px;
+}
+
+.reload-status.hidden {
+  display: none;
+}
+
+/* 레벨업 알림 */
+#levelup-notice {
+  position: absolute;
+  top: 75px;
+  left: 50%;
+  transform: translateX(-50%) scale(1);
+  background: #ff9800;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 6px 20px;
+  border-radius: 8px;
+  border: 2px solid #444444;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  animation: levelPop 1.2s ease-out forwards;
+  z-index: 20;
+}
+
+#levelup-notice.hidden {
+  display: none;
+}
+
+@keyframes levelPop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.6) translateY(-8px);
+  }
+  30% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.03) translateY(-14px);
+  }
+}
+
+/* ==========================================
+   5레벨 주기 무기 진화 선택 모달 (화면 하단)
+   ========================================== */
+#evolution-modal {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: rgba(20, 22, 28, 0.94);
+  backdrop-filter: blur(8px);
+  border: 2px solid #00e5ff;
+  border-radius: 16px;
+  padding: 16px 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 229, 255, 0.25);
+  z-index: 100;
+  animation: modalSlideUp 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+}
+
+#evolution-modal.hidden {
+  display: none;
+}
+
+.evolution-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #00e5ff;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+.evolution-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b0bec5;
+  margin-top: -6px;
+  letter-spacing: 0.5px;
+}
+
+.evolution-cards {
+  display: flex;
+  gap: 12px;
+}
+
+.evolution-card {
+  position: relative;
+  width: 124px;
+  background: #262933;
+  border: 1.5px solid #3e4452;
+  border-radius: 12px;
+  padding: 12px 8px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.evolution-card:hover {
+  transform: translateY(-8px) scale(1.04);
+  background: #313644;
+  border-color: #00e5ff;
+  box-shadow: 0 8px 20px rgba(0, 229, 255, 0.3);
+}
+
+.evolution-card:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.evolution-card .card-num {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff9800;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+.card-icon-wrap {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.weapon-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+
+.card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.card-desc {
+  font-size: 9.5px;
+  font-weight: 500;
+  color: #90a4ae;
+  text-align: center;
+  line-height: 1.35;
+}
+
+@keyframes modalSlideUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 40px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
