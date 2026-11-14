@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>2D 슈팅 아레나</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -17,6 +17,31 @@
         <div class="exp-bar-fill" id="expBarFill"></div>
       </div>
       <div class="exp-text" id="expText">0 / 50 EXP</div>
+    </div>
+  </div>
+
+  <!-- 모바일 듀얼 가상 조이스틱 컨테이너 -->
+  <div id="mobile-controls">
+    <!-- 좌측 이동 조이스틱 -->
+    <div id="joystick-move" class="joystick-zone">
+      <div class="joystick-base">
+        <div class="joystick-thumb" id="joystick-move-thumb"></div>
+      </div>
+      <span class="joystick-label">이동</span>
+    </div>
+
+    <!-- 우측 모바일 액션 버튼 그룹 (재장전 버튼) -->
+    <button id="btn-mobile-reload" class="mobile-action-btn" aria-label="재장전">
+      <span class="reload-icon">🔄</span>
+      <span class="reload-text">장전</span>
+    </button>
+
+    <!-- 우측 조준 & 발사 조이스틱 -->
+    <div id="joystick-aim" class="joystick-zone">
+      <div class="joystick-base aim-base">
+        <div class="joystick-thumb aim-thumb" id="joystick-aim-thumb"></div>
+      </div>
+      <span class="joystick-label">조준 & 사격</span>
     </div>
   </div>
 

@@ -119,6 +119,179 @@ window.addEventListener('mouseup', (e) => {
   if (e.button === 0) isMouseDown = false;
 });
 
+// ==========================================
+// 모바일 듀얼 가상 조이스틱 시스템 (이동 & 조준/사격)
+// ==========================================
+const joystickMoveEl = document.getElementById('joystick-move');
+const joystickMoveThumb = document.getElementById('joystick-move-thumb');
+const joystickAimEl = document.getElementById('joystick-aim');
+const joystickAimThumb = document.getElementById('joystick-aim-thumb');
+const mobileReloadBtn = document.getElementById('btn-mobile-reload');
+
+// 조이스틱 입력 상태 벡터 (-1.0 ~ 1.0)
+const joystickInput = {
+  move: { x: 0, y: 0, active: false, touchId: null },
+  aim: { x: 0, y: 0, active: false, touchId: null },
+};
+
+function setupJoysticks() {
+  const maxRadius = 42; // 노브 이동 한계 반경
+
+  // 1. 이동 조이스틱 터치 핸들러
+  if (joystickMoveEl) {
+    joystickMoveEl.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (joystickInput.move.active) return;
+      const touch = e.changedTouches[0];
+      joystickInput.move.touchId = touch.identifier;
+      joystickInput.move.active = true;
+      handleJoystickMoveTouch(touch);
+    }, { passive: false });
+
+    joystickMoveEl.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickInput.move.touchId) {
+          handleJoystickMoveTouch(touch);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const endMove = (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickInput.move.touchId) {
+          joystickInput.move.active = false;
+          joystickInput.move.touchId = null;
+          joystickInput.move.x = 0;
+          joystickInput.move.y = 0;
+          if (joystickMoveThumb) {
+            joystickMoveThumb.style.transform = `translate(0px, 0px)`;
+          }
+          break;
+        }
+      }
+    };
+    joystickMoveEl.addEventListener('touchend', endMove);
+    joystickMoveEl.addEventListener('touchcancel', endMove);
+  }
+
+  function handleJoystickMoveTouch(touch) {
+    const base = joystickMoveEl.querySelector('.joystick-base');
+    const rect = base.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = touch.clientX - centerX;
+    const dy = touch.clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist === 0) {
+      joystickInput.move.x = 0;
+      joystickInput.move.y = 0;
+      if (joystickMoveThumb) joystickMoveThumb.style.transform = `translate(0px, 0px)`;
+      return;
+    }
+
+    const clampedDist = Math.min(dist, maxRadius);
+    const normX = dx / dist;
+    const normY = dy / dist;
+
+    // 조이스틱 축 벡터 정규화
+    joystickInput.move.x = normX * (clampedDist / maxRadius);
+    joystickInput.move.y = normY * (clampedDist / maxRadius);
+
+    if (joystickMoveThumb) {
+      joystickMoveThumb.style.transform = `translate(${normX * clampedDist}px, ${normY * clampedDist}px)`;
+    }
+  }
+
+  // 2. 조준 & 사격 조이스틱 터치 핸들러
+  if (joystickAimEl) {
+    joystickAimEl.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (joystickInput.aim.active) return;
+      const touch = e.changedTouches[0];
+      joystickInput.aim.touchId = touch.identifier;
+      joystickInput.aim.active = true;
+      handleJoystickAimTouch(touch);
+    }, { passive: false });
+
+    joystickAimEl.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickInput.aim.touchId) {
+          handleJoystickAimTouch(touch);
+          break;
+        }
+      }
+    }, { passive: false });
+
+    const endAim = (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        if (touch.identifier === joystickInput.aim.touchId) {
+          joystickInput.aim.active = false;
+          joystickInput.aim.touchId = null;
+          joystickInput.aim.x = 0;
+          joystickInput.aim.y = 0;
+          if (joystickAimThumb) {
+            joystickAimThumb.style.transform = `translate(0px, 0px)`;
+          }
+          break;
+        }
+      }
+    };
+    joystickAimEl.addEventListener('touchend', endAim);
+    joystickAimEl.addEventListener('touchcancel', endAim);
+  }
+
+  function handleJoystickAimTouch(touch) {
+    const base = joystickAimEl.querySelector('.joystick-base');
+    const rect = base.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = touch.clientX - centerX;
+    const dy = touch.clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+
+    if (dist === 0) {
+      joystickInput.aim.x = 0;
+      joystickInput.aim.y = 0;
+      if (joystickAimThumb) joystickAimThumb.style.transform = `translate(0px, 0px)`;
+      return;
+    }
+
+    const clampedDist = Math.min(dist, maxRadius);
+    const normX = dx / dist;
+    const normY = dy / dist;
+
+    joystickInput.aim.x = normX * (clampedDist / maxRadius);
+    joystickInput.aim.y = normY * (clampedDist / maxRadius);
+
+    if (joystickAimThumb) {
+      joystickAimThumb.style.transform = `translate(${normX * clampedDist}px, ${normY * clampedDist}px)`;
+    }
+  }
+
+  // 3. 모바일 재장전 버튼
+  if (mobileReloadBtn) {
+    mobileReloadBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      tryReload();
+    }, { passive: false });
+    mobileReloadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      tryReload();
+    });
+  }
+}
+setupJoysticks();
+
 // 무기 스펙 정의 (5레벨 주기 진화 선택지 5종)
 const WEAPONS = {
   pistol: {
@@ -978,7 +1151,7 @@ function resolveCircleAABB(circle, boxX, boxY, boxW, boxH) {
 
 // 물리 및 게임 상태 업데이트
 function update() {
-  // 1. 플레이어 WASD 이동
+  // 1. 플레이어 이동 (키보드 WASD + 모바일 가상 조이스틱)
   let moveX = 0;
   let moveY = 0;
 
@@ -987,10 +1160,22 @@ function update() {
   if (keys.a) moveX -= 1;
   if (keys.d) moveX += 1;
 
+  // 키보드 대각선 이동 정규화
   if (moveX !== 0 && moveY !== 0) {
     const invLen = 1 / Math.SQRT2;
     moveX *= invLen;
     moveY *= invLen;
+  }
+
+  // 모바일 이동 조이스틱 입력 결합
+  if (joystickInput.move.active) {
+    moveX += joystickInput.move.x;
+    moveY += joystickInput.move.y;
+    const jDist = Math.hypot(moveX, moveY);
+    if (jDist > 1) {
+      moveX /= jDist;
+      moveY /= jDist;
+    }
   }
 
   player.vx += moveX * player.acceleration;
@@ -1035,10 +1220,14 @@ function update() {
   player.x = Math.max(minPos, Math.min(maxPos, player.x));
   player.y = Math.max(minPos, Math.min(maxPos, player.y));
 
-  // 플레이어 시선 각도
-  const screenPlayerX = screenWidth / 2 + (player.x - camera.x);
-  const screenPlayerY = screenHeight / 2 + (player.y - camera.y);
-  player.angle = Math.atan2(mousePos.y - screenPlayerY, mousePos.x - screenPlayerX);
+  // 플레이어 시선 각도 (모바일 조준 조이스틱 우선, 비활성 시 마우스 각도)
+  if (joystickInput.aim.active) {
+    player.angle = Math.atan2(joystickInput.aim.y, joystickInput.aim.x);
+  } else {
+    const screenPlayerX = screenWidth / 2 + (player.x - camera.x);
+    const screenPlayerY = screenHeight / 2 + (player.y - camera.y);
+    player.angle = Math.atan2(mousePos.y - screenPlayerY, mousePos.x - screenPlayerX);
+  }
 
   // 재장전 타이머 처리
   if (player.isReloading) {
@@ -1056,11 +1245,15 @@ function update() {
     player.slashSwingTimer--;
   }
 
-  // 발사 처리
+  // 발사 처리 (마우스 클릭 또는 모바일 조준 조이스틱이 충분히 당겨졌을 때 자동 사격)
   if (player.fireCooldown > 0) {
     player.fireCooldown--;
   }
-  if (isMouseDown && player.fireCooldown <= 0 && !player.isReloading) {
+
+  const isAimJoystickFiring = joystickInput.aim.active && Math.hypot(joystickInput.aim.x, joystickInput.aim.y) > 0.35;
+  const shouldFire = (isMouseDown || isAimJoystickFiring) && !player.isReloading;
+
+  if (shouldFire && player.fireCooldown <= 0) {
     shootWeapon();
     player.fireCooldown = player.fireInterval;
   }
